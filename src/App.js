@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import Webcam from "react-webcam";
 
 const App = () => {
+  // this is the code for capturing and recording video
   const webcamRef = React.useRef(null);
   const mediaRecorderRef = React.useRef(null);
   const [capturing, setCapturing] = React.useState(false);
@@ -50,8 +51,9 @@ const App = () => {
     }
   }, [recordedChunks]);
 
+  // this is the code for taking passport or what have you...
+  // the additional code in here for video is not functional for recording but required to capture a passport.
   const recording = document.createElement("recording");
-
   let recordingTimeMS = 5000;
 
   const videoRef = useRef(null);
@@ -150,20 +152,6 @@ const App = () => {
     strip.insertBefore(link, strip.firstChild);
   };
 
-  // const recordVideo = () => {
-  //   let video = getVideo();
-  //   let strip = stripRef.current;
-  //   const data = video.toDataURL("video/webm");
-
-  //   console.warn(data);
-  //   const link = document.createElement("a");
-  //   link.href = data;
-  //   link.setAttribute("download", "myWebcam");
-  //   link.innerHTML = `<video controls width="250" src='${data}' alt='thumbnail'/>`;
-
-  //   strip.insertBefore(link, strip.firstChild);
-  // };
-
   const myStyle = {
     backgroundImage:
       "url('https://images.unsplash.com/photo-1589670301572-734d642c53d2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2970&q=80')",
@@ -177,6 +165,7 @@ const App = () => {
   return (
     <div className="container">
       <div ref={colorRef} className="scene" style={myStyle}>
+        {/* this is for returning a passport photograph */}
         <div className="webcam-video">
           <button onClick={() => takePhoto()}>Take a photo</button>
           <video
@@ -189,21 +178,18 @@ const App = () => {
             <div ref={stripRef} className="strip" />
           </div>
         </div>
-        <Webcam audio={false} ref={webcamRef} />
-      {capturing ? (
-        <button onClick={handleStopCaptureClick}>Stop Recording</button>
-      ) : (
-        <button onClick={handleStartCaptureClick}>Start Recording</button>
-      )}
-      {recordedChunks.length > 0 && (
-        <button onClick={handleDownload}>Download</button>
-      )}
+
+        {/* the code below is for video recording, specifically. */}
+        <Webcam audio={true} ref={webcamRef} />
+        {capturing ? (
+          <button onClick={handleStopCaptureClick}>Stop Recording</button>
+        ) : (
+          <button onClick={handleStartCaptureClick}>Start Recording</button>
+        )}
+        {recordedChunks.length > 0 && (
+          <button onClick={handleDownload}>Download</button>
+        )}
       </div>
-{/* 
-      <button onClick={() => startRecording()}>Start Recording</button>
-      <button onClick={() => stop()}>Stop Recording</button> */}
-
-
     </div>
   );
 };
