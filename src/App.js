@@ -1,7 +1,59 @@
 import React, { useEffect, useRef } from "react";
-const App = () => {
-  const recording = document.createElement("recording");
+import Webcam from "react-webcam";
 
+const App = () => {
+  // this is the code for capturing and recording video
+  const webcamRef = React.useRef(null);
+  const mediaRecorderRef = React.useRef(null);
+  const [capturing, setCapturing] = React.useState(false);
+  const [recordedChunks, setRecordedChunks] = React.useState([]);
+
+  const handleStartCaptureClick = React.useCallback(() => {
+    setCapturing(true);
+    mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
+      mimeType: "video/webm",
+    });
+    mediaRecorderRef.current.addEventListener(
+      "dataavailable",
+      handleDataAvailable
+    );
+    mediaRecorderRef.current.start();
+  }, [webcamRef, setCapturing, mediaRecorderRef]);
+
+  const handleDataAvailable = React.useCallback(
+    ({ data }) => {
+      if (data.size > 0) {
+        setRecordedChunks((prev) => prev.concat(data));
+      }
+    },
+    [setRecordedChunks]
+  );
+
+  const handleStopCaptureClick = React.useCallback(() => {
+    mediaRecorderRef.current.stop();
+    setCapturing(false);
+  }, [mediaRecorderRef, webcamRef, setCapturing]);
+
+  const handleDownload = React.useCallback(() => {
+    if (recordedChunks.length) {
+      const blob = new Blob(recordedChunks, {
+        type: "video/webm",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      document.body.appendChild(a);
+      a.style = "display: none";
+      a.href = url;
+      a.download = "react-webcam-stream-capture.webm";
+      a.click();
+      window.URL.revokeObjectURL(url);
+      setRecordedChunks([]);
+    }
+  }, [recordedChunks]);
+
+  // this is the code for taking passport or what have you...
+  // the additional code in here for video is not functional for recording but required to capture a passport.
+  const recording = document.createElement("recording");
   let recordingTimeMS = 5000;
 
   const videoRef = useRef(null);
@@ -100,20 +152,6 @@ const App = () => {
     strip.insertBefore(link, strip.firstChild);
   };
 
-  // const recordVideo = () => {
-  //   let video = getVideo();
-  //   let strip = stripRef.current;
-  //   const data = video.toDataURL("video/webm");
-
-  //   console.warn(data);
-  //   const link = document.createElement("a");
-  //   link.href = data;
-  //   link.setAttribute("download", "myWebcam");
-  //   link.innerHTML = `<video controls width="250" src='${data}' alt='thumbnail'/>`;
-
-  //   strip.insertBefore(link, strip.firstChild);
-  // };
-
   const myStyle = {
     backgroundImage:
       "url('https://images.unsplash.com/photo-1589670301572-734d642c53d2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2970&q=80')",
@@ -127,6 +165,7 @@ const App = () => {
   return (
     <div className="container">
       <div ref={colorRef} className="scene" style={myStyle}>
+        {/* this is for returning a passport photograph */}
         <div className="webcam-video">
           <button onClick={() => takePhoto()}>Take a photo</button>
           <video
@@ -139,10 +178,18 @@ const App = () => {
             <div ref={stripRef} className="strip" />
           </div>
         </div>
-      </div>
 
-      <button onClick={() => startRecording()}>Start Recording</button>
-      <button onClick={() => stop()}>Stop Recording</button>
+        {/* the code below is for video recording, specifically. */}
+        <Webcam audio={true} ref={webcamRef} />
+        {capturing ? (
+          <button onClick={handleStopCaptureClick}>Stop Recording</button>
+        ) : (
+          <button onClick={handleStartCaptureClick}>Start Recording</button>
+        )}
+        {recordedChunks.length > 0 && (
+          <button onClick={handleDownload}>Download</button>
+        )}
+      </div>
     </div>
   );
 };
